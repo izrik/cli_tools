@@ -19,11 +19,14 @@ def main():
     items = args.items
     best = None
     best_sum = 0
+    best_abs_diff = target
     for s in powerset(items):
         s_sum = sum(s)
-        if best is None or (best_sum < s_sum <= target):
+        s_abs_diff = abs(target - s_sum)
+        if best is None or (s_abs_diff < best_abs_diff):
             best = s
             best_sum = s_sum
+            best_abs_diff = s_abs_diff
             print(f'{best_sum:g} = {" + ".join(str(_) for _ in best)}')
     if best is None:
         print('Found nothing, somehow')
