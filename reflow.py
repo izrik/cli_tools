@@ -44,15 +44,19 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('file', nargs='?')
     parser.add_argument('-w', '--width', default=76, type=int)
+    parser.add_argument('-s', '--string')
     args = parser.parse_args()
     file = args.file
-    if not file or file == '-':
-        file_in = sys.stdin
+    if args.string:
+        from io import StringIO
+        source = StringIO(args.string)
+    elif not file or file == '-':
+        source = sys.stdin
     else:
-        file_in = open(file)
+        source = open(file)
     width = args.width
     current_words = WordList()
-    for line in file_in.readlines():
+    for line in source.readlines():
         if line == '\n' or line == '':
             print(' '.join(current_words))
             current_words.clear()
@@ -62,7 +66,7 @@ def main():
         words = line.split()
         for word in words:
             if current_words.length + len(word) + 1 > width:
-                print(' '.join(current_words), end=end)
+                print(' '.join(current_words))
                 current_words.clear()
             current_words.append(word)
     if current_words:
