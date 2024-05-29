@@ -10,25 +10,46 @@ import yaml
 HOME = os.getenv('HOME')
 
 
+def get_available_identities(identities):
+    if not identities:
+        return []
+    return list(identities.keys())
+
+
+def print_available_identities(identities):
+    identities = get_available_identities(identities)
+    if identities:
+        print(f'Available identities:', file=sys.stderr)
+        for ident_name in identities:
+            print(f'  {ident_name}', file=sys.stderr)
+    else:
+        print(f'No available identities found', file=sys.stderr)
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('identity')
+    parser.add_argument('identity', nargs='?')
     parser.add_argument('--config', '-c', default=f'{HOME}/.cswitch.yaml')
+    parser.add_argument('--list', '-l', action='store_true')
     args = parser.parse_args()
-    identity = args.identity
     config_path = args.config
     with open(config_path) as f:
         config = yaml.safe_load(f)
     identities = config.get('identities') or {}
+    if args.list:
+        print_available_identities(identities)
+        return
+
+    identity = args.identity
+    if not identity:
+        parser.print_usage()
+        print("Error: the following arguments are required: identity")
+        sys.exit(1)
+
     ident = identities.get(identity)
     if not ident:
         print(f'Identity not found: \"{identity}\"', file=sys.stderr)
-        if identities:
-            print('  Available identities:', file=sys.stderr)
-            for ident_name in identities.keys():
-                print(f'    {ident_name}', file=sys.stderr)
-        else:
-            print('  No available identities found', file=sys.stderr)
+        print_available_identities(identities)
         sys.exit(1)
 
     configuration = ident.get('configuration')
