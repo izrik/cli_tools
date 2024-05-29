@@ -13,7 +13,7 @@ HOME = os.getenv('HOME')
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('identity')
-    parser.add_argument('--config', '-c', default=f'{HOME}/.gswitch.yaml')
+    parser.add_argument('--config', '-c', default=f'{HOME}/.cswitch.yaml')
     args = parser.parse_args()
     identity = args.identity
     config_path = args.config
