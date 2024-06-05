@@ -68,6 +68,10 @@ def main():
     rv = subprocess.run(['gcloud', 'config', 'set', 'account', account])
     rv = subprocess.run(['gcloud', 'config', 'set', 'project', project])
 
+    context = ident.get('context')
+    if context:
+        rv = subprocess.run(['kubectl', 'config', 'use-context', context])
+
     cluster = ident.get('cluster')
     zone = ident.get('zone')
     if cluster:
