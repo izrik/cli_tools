@@ -99,6 +99,12 @@ def main():
                    f'--namespace={namespace}']
             rv = subprocess.run(cmd, env=env)
 
+        aws_sso_login = step.get('aws:aws_sso_login')
+        if aws_sso_login:
+            cmd = ['aws', 'sso', 'login']
+            rv = subprocess.run(cmd, env=env, stdout=sys.stdout,
+                                stderr=sys.stderr)
+
 
 if __name__ == '__main__':
     main()
