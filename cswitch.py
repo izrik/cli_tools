@@ -47,14 +47,17 @@ def main():
         sys.exit(1)
 
     steps = identities.get(identity)
+    if not steps:
+        print(f'Identity not found: \"{identity}\"', file=sys.stderr)
+        print_available_identities(identities)
+        sys.exit(1)
     if isinstance(steps, dict):
         steps = [steps]
+    if not steps:
+        print(f'Identity not found: \"{identity}\"', file=sys.stderr)
+        print_available_identities(identities)
+        sys.exit(1)
     for step in steps:
-        if not step:
-            print(f'Identity not found: \"{identity}\"', file=sys.stderr)
-            print_available_identities(identities)
-            sys.exit(1)
-
         configuration = step.get('gcloud:configuration')
         if configuration:
             cmd = ['gcloud', 'config', 'configurations', 'activate', configuration]
