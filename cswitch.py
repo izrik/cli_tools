@@ -57,40 +57,47 @@ def main():
         print(f'Identity not found: \"{identity}\"', file=sys.stderr)
         print_available_identities(identities)
         sys.exit(1)
+
     for step in steps:
+        env = {**os.environ}
+        __env__ = step.get('__env__')
+        if __env__:
+            env.update(__env__)
+
         configuration = step.get('gcloud:configuration')
         if configuration:
-            cmd = ['gcloud', 'config', 'configurations', 'activate', configuration]
-            rv = subprocess.run(cmd)
+            cmd = ['gcloud', 'config', 'configurations', 'activate',
+                   configuration]
+            rv = subprocess.run(cmd, env=env)
 
         account = step.get('gcloud:account')
-        if not account:
-            print('No "account" configured for this identity', file=sys.stderr)
-            sys.exit(1)
+        if account:
+            rv = subprocess.run(
+                ['gcloud', 'config', 'set', 'account', account], env=env)
         project = step.get('gcloud:project')
-        if not project:
-            print('No "project" configured for this identity', file=sys.stderr)
-            sys.exit(1)
-        rv = subprocess.run(['gcloud', 'config', 'set', 'account', account])
-        rv = subprocess.run(['gcloud', 'config', 'set', 'project', project])
+        if project:
+            rv = subprocess.run(
+                ['gcloud', 'config', 'set', 'project', project], env=env)
 
         context = step.get('kubectl:context')
         if context:
-            rv = subprocess.run(['kubectl', 'config', 'use-context', context])
+            rv = subprocess.run(
+                ['kubectl', 'config', 'use-context', context], env=env)
 
         cluster = step.get('gcloud:cluster')
         zone = step.get('gcloud:zone')
         if cluster:
-            cmd = ['gcloud', 'container', 'clusters', 'get-credentials', cluster]
+            cmd = ['gcloud', 'container', 'clusters', 'get-credentials',
+                   cluster]
             if zone:
                 cmd.extend(['--zone', zone])
-            rv = subprocess.run(cmd)
+            rv = subprocess.run(cmd, env=env)
 
         namespace = step.get('kubectl:namespace')
         if namespace:
             cmd = ['kubectl', 'config', 'set-context', '--current',
                    f'--namespace={namespace}']
-            re = subprocess.run(cmd)
+            rv = subprocess.run(cmd, env=env)
 
 
 if __name__ == '__main__':
