@@ -46,45 +46,48 @@ def main():
         print("Error: the following arguments are required: identity")
         sys.exit(1)
 
-    ident = identities.get(identity)
-    if not ident:
-        print(f'Identity not found: \"{identity}\"', file=sys.stderr)
-        print_available_identities(identities)
-        sys.exit(1)
+    steps = identities.get(identity)
+    if isinstance(steps, dict):
+        steps = [steps]
+    for step in steps:
+        if not step:
+            print(f'Identity not found: \"{identity}\"', file=sys.stderr)
+            print_available_identities(identities)
+            sys.exit(1)
 
-    configuration = ident.get('configuration')
-    if configuration:
-        cmd = ['gcloud', 'config', 'configurations', 'activate', configuration]
-        rv = subprocess.run(cmd)
+        configuration = step.get('configuration')
+        if configuration:
+            cmd = ['gcloud', 'config', 'configurations', 'activate', configuration]
+            rv = subprocess.run(cmd)
 
-    account = ident.get('account')
-    if not account:
-        print('No "account" configured for this identity', file=sys.stderr)
-        sys.exit(1)
-    project = ident.get('project')
-    if not project:
-        print('No "project" configured for this identity', file=sys.stderr)
-        sys.exit(1)
-    rv = subprocess.run(['gcloud', 'config', 'set', 'account', account])
-    rv = subprocess.run(['gcloud', 'config', 'set', 'project', project])
+        account = step.get('account')
+        if not account:
+            print('No "account" configured for this identity', file=sys.stderr)
+            sys.exit(1)
+        project = step.get('project')
+        if not project:
+            print('No "project" configured for this identity', file=sys.stderr)
+            sys.exit(1)
+        rv = subprocess.run(['gcloud', 'config', 'set', 'account', account])
+        rv = subprocess.run(['gcloud', 'config', 'set', 'project', project])
 
-    context = ident.get('context')
-    if context:
-        rv = subprocess.run(['kubectl', 'config', 'use-context', context])
+        context = step.get('context')
+        if context:
+            rv = subprocess.run(['kubectl', 'config', 'use-context', context])
 
-    cluster = ident.get('cluster')
-    zone = ident.get('zone')
-    if cluster:
-        cmd = ['gcloud', 'container', 'clusters', 'get-credentials', cluster]
-        if zone:
-            cmd.extend(['--zone', zone])
-        rv = subprocess.run(cmd)
+        cluster = step.get('cluster')
+        zone = step.get('zone')
+        if cluster:
+            cmd = ['gcloud', 'container', 'clusters', 'get-credentials', cluster]
+            if zone:
+                cmd.extend(['--zone', zone])
+            rv = subprocess.run(cmd)
 
-        namespace = ident.get('namespace')
-        if namespace:
-            cmd = ['kubectl', 'config', 'set-context', '--current',
-                   f'--namespace={namespace}']
-            re = subprocess.run(cmd)
+            namespace = step.get('namespace')
+            if namespace:
+                cmd = ['kubectl', 'config', 'set-context', '--current',
+                       f'--namespace={namespace}']
+                re = subprocess.run(cmd)
 
 
 if __name__ == '__main__':
