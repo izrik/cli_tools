@@ -105,6 +105,12 @@ def main():
             rv = subprocess.run(cmd, env=env, stdout=sys.stdout,
                                 stderr=sys.stderr)
 
+        run = step.get('run')
+        if run:
+            cmd = ['bash', '-c', run]
+            rv = subprocess.run(cmd, env=env, stdout=sys.stdout,
+                                stderr=sys.stderr)
+
 
 if __name__ == '__main__':
     main()
