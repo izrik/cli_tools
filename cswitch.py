@@ -55,39 +55,39 @@ def main():
             print_available_identities(identities)
             sys.exit(1)
 
-        configuration = step.get('configuration')
+        configuration = step.get('gcloud:configuration')
         if configuration:
             cmd = ['gcloud', 'config', 'configurations', 'activate', configuration]
             rv = subprocess.run(cmd)
 
-        account = step.get('account')
+        account = step.get('gcloud:account')
         if not account:
             print('No "account" configured for this identity', file=sys.stderr)
             sys.exit(1)
-        project = step.get('project')
+        project = step.get('gcloud:project')
         if not project:
             print('No "project" configured for this identity', file=sys.stderr)
             sys.exit(1)
         rv = subprocess.run(['gcloud', 'config', 'set', 'account', account])
         rv = subprocess.run(['gcloud', 'config', 'set', 'project', project])
 
-        context = step.get('context')
+        context = step.get('kubectl:context')
         if context:
             rv = subprocess.run(['kubectl', 'config', 'use-context', context])
 
-        cluster = step.get('cluster')
-        zone = step.get('zone')
+        cluster = step.get('gcloud:cluster')
+        zone = step.get('gcloud:zone')
         if cluster:
             cmd = ['gcloud', 'container', 'clusters', 'get-credentials', cluster]
             if zone:
                 cmd.extend(['--zone', zone])
             rv = subprocess.run(cmd)
 
-            namespace = step.get('namespace')
-            if namespace:
-                cmd = ['kubectl', 'config', 'set-context', '--current',
-                       f'--namespace={namespace}']
-                re = subprocess.run(cmd)
+        namespace = step.get('kubectl:namespace')
+        if namespace:
+            cmd = ['kubectl', 'config', 'set-context', '--current',
+                   f'--namespace={namespace}']
+            re = subprocess.run(cmd)
 
 
 if __name__ == '__main__':
