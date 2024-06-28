@@ -11,18 +11,29 @@ class WordList:
     words = []
     _length = None
 
-    def __init__(self):
+    def __init__(self, indent, margin):
         self.words = []
         self._length = None
+        self.indent = indent or ''
+        self.margin = margin or ''
 
-    @property
-    def length(self):
+    def format_line(self, first):
+        line_out = self.margin
+        if first:
+            line_out += self.indent
+        line_out += ' '.join(self.words)
+        return line_out
+
+    def get_length(self, first):
         if self._length is None:
             if not self.words:
                 self._length = 0
             else:
                 word_lengths = sum(len(_) for _ in self.words)
                 self._length = word_lengths + len(self.words) - 1
+            self._length += len(self.margin)
+            if first:
+                self._length += len(self.indent)
         return self._length
 
     def append(self, value):
@@ -40,11 +51,30 @@ class WordList:
         return not not self.words
 
 
+def str_or_num_spaces(value):
+    try:
+        value = int(value)
+        return ' ' * value
+    except ValueError:
+        pass
+    value = str(value)
+    return value
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('file', nargs='?')
     parser.add_argument('-w', '--width', default=76, type=int)
     parser.add_argument('-s', '--string')
+    parser.add_argument(
+        '-i', '--indent', default=0, type=str_or_num_spaces,
+        help='A string to prepend to the first line, or number of spaces to'
+             'prepend. The indent is applied after any margin. Defaults to'
+             'zero.')
+    parser.add_argument(
+        '-m', '--margin', default=0, type=str_or_num_spaces,
+        help='String to prepend to each line, or the number of spaces to'
+             'prepend. Defaults to zero.')
     args = parser.parse_args()
     file = args.file
     if args.string:
@@ -55,22 +85,27 @@ def main():
     else:
         source = open(file)
     width = args.width
-    current_words = WordList()
+    indent = args.indent
+    margin = args.margin
+    current_words = WordList(indent, margin)
+    first = True
     for line in source.readlines():
         if line == '\n' or line == '':
-            print(' '.join(current_words))
+            print(current_words.format_line(first))
             current_words.clear()
+            first = False
             continue
         ends_with_newline = line.endswith('\n')
         end = '\n' if ends_with_newline else ''
         words = line.split()
         for word in words:
-            if current_words.length + len(word) + 1 > width:
-                print(' '.join(current_words))
+            if current_words.get_length(first) + len(word) + 1 > width:
+                print(current_words.format_line(first))
                 current_words.clear()
+                first = False
             current_words.append(word)
     if current_words:
-        print(' '.join(current_words), end=end)
+        print(current_words.format_line(first), end=end)
         current_words.clear()
 
 
