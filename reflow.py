@@ -75,6 +75,10 @@ def main():
         '-m', '--margin', default=0, type=str_or_num_spaces,
         help='String to prepend to each line, or the number of spaces to'
              'prepend. Defaults to zero.')
+    parser.add_argument(
+        '-r', '--remove-margin', default=None, type=str_or_num_spaces,
+        help='String to remove from the beginning of each line of input. '
+             'Defaults to nothing.')
     args = parser.parse_args()
     file = args.file
     if args.string:
@@ -87,9 +91,12 @@ def main():
     width = args.width
     indent = args.indent
     margin = args.margin
+    remove_margin = args.remove_margin
     current_words = WordList(indent, margin)
     first = True
     for line in source.readlines():
+        if remove_margin and line.startswith(remove_margin):
+            line = line[len(remove_margin):]
         if line == '\n' or line == '':
             print(current_words.format_line(first))
             current_words.clear()
